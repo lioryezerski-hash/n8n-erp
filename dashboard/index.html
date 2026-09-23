@@ -1,0 +1,1266 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>ERP Command</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #0B0E1A;
+    --bg-surface: #111827;
+    --bg-card: #1A2038;
+    --bg-hover: #1F2A45;
+    --border: #263354;
+    --accent: #38BDF8;
+    --accent-glow: rgba(56,189,248,0.15);
+    --accent-dim: #0E7490;
+    --text: #E2E8F0;
+    --text-muted: #64748B;
+    --text-faint: #334155;
+    --success: #34D399;
+    --warning: #FBBF24;
+    --danger: #F87171;
+    --purple: #A78BFA;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    overflow: hidden;
+  }
+
+  /* ── Layout ── */
+  .app { display: flex; height: 100%; }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--bg-surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 20px 20px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo-icon {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--accent), #818CF8);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+    box-shadow: 0 0 20px rgba(56,189,248,0.3);
+  }
+
+  .logo-text {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+  .logo-sub {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .sidebar-nav {
+    flex: 1;
+    padding: 12px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .nav-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
+    padding: 10px 10px 6px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-weight: 500;
+    transition: all 0.15s;
+    border: 1px solid transparent;
+    user-select: none;
+  }
+  .nav-item:hover { background: var(--bg-hover); color: var(--text); }
+  .nav-item.active {
+    background: var(--accent-glow);
+    color: var(--accent);
+    border-color: rgba(56,189,248,0.2);
+  }
+  .nav-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+  .nav-badge {
+    margin-left: auto;
+    background: var(--accent-dim);
+    color: var(--accent);
+    font-size: 10px;
+    font-weight: 600;
+    font-family: var(--font-mono);
+    padding: 1px 6px;
+    border-radius: 10px;
+  }
+
+  .sidebar-footer {
+    padding: 14px 16px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+  }
+  .sidebar-footer span { color: var(--success); }
+
+  /* ── Main content ── */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .topbar {
+    height: 56px;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 12px;
+    background: var(--bg-surface);
+  }
+
+  .topbar-title {
+    font-weight: 600;
+    font-size: 15px;
+    flex: 1;
+  }
+
+  .topbar-endpoint {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-faint);
+    background: var(--bg);
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+
+  .btn-refresh {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 7px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.15s;
+  }
+  .btn-refresh:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-refresh.spinning .refresh-icon { animation: spin 0.6s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* ── Views ── */
+  .view { display: none; flex-direction: column; gap: 20px; }
+  .view.active { display: flex; }
+
+  /* ── Stat cards ── */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--card-accent, var(--accent));
+    border-radius: 12px 12px 0 0;
+  }
+  .stat-card:hover { border-color: rgba(56,189,248,0.3); }
+
+  .stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-muted);
+  }
+  .stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    color: var(--card-accent, var(--accent));
+    line-height: 1;
+  }
+  .stat-sub {
+    font-size: 11px;
+    color: var(--text-faint);
+  }
+  .stat-icon {
+    position: absolute;
+    right: 16px; top: 16px;
+    font-size: 22px;
+    opacity: 0.3;
+  }
+
+  /* ── Tables ── */
+  .table-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .table-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .table-header h3 { font-size: 14px; font-weight: 600; flex: 1; }
+
+  .table-wrapper { overflow-x: auto; }
+
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody tr {
+    border-bottom: 1px solid var(--text-faint);
+    transition: background 0.1s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--bg-hover); }
+  tbody td {
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .mono { font-family: var(--font-mono); font-size: 12px; }
+
+  /* ── Status badges ── */
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+  }
+  .badge-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+  .badge-green { background: rgba(52,211,153,0.12); color: var(--success); }
+  .badge-yellow { background: rgba(251,191,36,0.12); color: var(--warning); }
+  .badge-red { background: rgba(248,113,113,0.12); color: var(--danger); }
+  .badge-blue { background: rgba(56,189,248,0.12); color: var(--accent); }
+  .badge-purple { background: rgba(167,139,250,0.12); color: var(--purple); }
+
+  /* ── Chat ── */
+  .chat-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 180px);
+    overflow: hidden;
+  }
+
+  .chat-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .chat-ai-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 8px var(--success);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .chat-msg {
+    display: flex;
+    gap: 12px;
+    max-width: 85%;
+  }
+  .chat-msg.user { margin-left: auto; flex-direction: row-reverse; }
+
+  .msg-avatar {
+    width: 32px; height: 32px; flex-shrink: 0;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+  }
+  .chat-msg.ai .msg-avatar { background: var(--accent-glow); border-color: rgba(56,189,248,0.3); }
+
+  .msg-bubble {
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .chat-msg.user .msg-bubble {
+    background: var(--accent-glow);
+    border-color: rgba(56,189,248,0.25);
+    color: var(--text);
+  }
+  .msg-time {
+    font-size: 10px;
+    color: var(--text-faint);
+    margin-top: 4px;
+    font-family: var(--font-mono);
+    text-align: right;
+  }
+
+  .chat-input-row {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    display: flex; gap: 10px;
+  }
+  .chat-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    resize: none;
+    height: 40px;
+    transition: border-color 0.15s;
+    outline: none;
+  }
+  .chat-input:focus { border-color: var(--accent); }
+  .chat-input::placeholder { color: var(--text-faint); }
+
+  .btn-send {
+    background: var(--accent);
+    color: #0B0E1A;
+    border: none;
+    padding: 0 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    transition: opacity 0.15s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .btn-send:hover { opacity: 0.9; }
+  .btn-send:disabled { opacity: 0.4; cursor: default; }
+
+  /* ── Create form ── */
+  .form-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 640px;
+  }
+
+  .form-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 20px; }
+
+  .form-group { margin-bottom: 16px; }
+  .form-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+  }
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+    appearance: none;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
+  .form-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748B' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 32px; }
+  .form-textarea { resize: vertical; min-height: 80px; }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  .btn-create {
+    background: var(--accent);
+    color: #0B0E1A;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    transition: opacity 0.15s;
+    margin-top: 8px;
+  }
+  .btn-create:hover { opacity: 0.9; }
+  .btn-create:disabled { opacity: 0.4; cursor: default; }
+
+  /* ── Loading / error / empty states ── */
+  .state-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 48px 24px;
+    color: var(--text-faint);
+    font-size: 13px;
+    text-align: center;
+  }
+  .state-icon { font-size: 32px; opacity: 0.5; }
+  .state-box.error { color: var(--danger); }
+  .state-box.error .state-icon { opacity: 1; }
+
+  .skeleton {
+    background: linear-gradient(90deg, var(--bg-card) 0%, var(--bg-hover) 50%, var(--bg-card) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+    border-radius: 6px;
+    height: 14px;
+  }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+    display: flex; align-items: center; gap: 10px;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(.34,1.56,.64,1);
+    z-index: 999;
+    pointer-events: none;
+    max-width: 320px;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+  #toast.success { border-color: rgba(52,211,153,0.4); color: var(--success); }
+  #toast.error { border-color: rgba(248,113,113,0.4); color: var(--danger); }
+
+  /* ── Amount formatting ── */
+  .amount {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-faint); }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .sidebar { width: 64px; }
+    .logo-text, .logo-sub, .nav-item span, .nav-badge, .sidebar-footer, .nav-section-label { display: none; }
+    .nav-item { justify-content: center; padding: 10px; }
+    .stat-grid { grid-template-columns: 1fr 1fr; }
+    .topbar-endpoint { display: none; }
+    .form-row { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 500px) {
+    .stat-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Typing indicator */
+  .typing-dots { display: flex; gap: 4px; align-items: center; padding: 4px 0; }
+  .typing-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--text-muted);
+    animation: typingBounce 1.2s infinite;
+  }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typingBounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
+</style>
+
+<!-- ── LOGIN SCREEN ── -->
+<div id="login-screen" style="
+  position:fixed;inset:0;z-index:9999;
+  background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+">
+  <div style="
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:40px 36px;
+    width:340px;
+    display:flex;flex-direction:column;gap:24px;
+    box-shadow:0 24px 64px rgba(0,0,0,0.5);
+  ">
+    <div style="text-align:center;display:flex;flex-direction:column;gap:8px">
+      <div style="font-size:36px">⚡</div>
+      <div style="font-size:18px;font-weight:700;letter-spacing:-0.02em">ERP Command</div>
+      <div style="font-size:12px;color:var(--text-muted);font-family:var(--font-mono)">הזן סיסמה להמשך</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <input
+        id="pw-input"
+        type="password"
+        placeholder="סיסמה"
+        autocomplete="current-password"
+        style="
+          background:var(--bg);border:1px solid var(--border);
+          color:var(--text);padding:11px 14px;border-radius:8px;
+          font-family:'Inter',sans-serif;font-size:14px;outline:none;
+          width:100%;transition:border-color 0.15s;text-align:right;direction:ltr;
+        "
+        onkeydown="if(event.key==='Enter')checkPw()"
+        oninput="document.getElementById('pw-err').style.opacity=0"
+      >
+      <div id="pw-err" style="
+        color:var(--danger);font-size:12px;text-align:center;
+        opacity:0;transition:opacity 0.2s;
+      ">סיסמה שגויה — נסה שוב</div>
+      <button onclick="checkPw()" style="
+        background:var(--accent);color:#0B0E1A;border:none;
+        padding:11px;border-radius:8px;font-weight:700;
+        font-size:14px;font-family:'Inter',sans-serif;
+        cursor:pointer;transition:opacity 0.15s;width:100%;
+      " onmouseover="this.style.opacity=.9" onmouseout="this.style.opacity=1">
+        כניסה →
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="app" id="main-app" hidden>
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">⚡</div>
+      <div>
+        <div class="logo-text">ERP Command</div>
+        <div class="logo-sub">n8n · Airtable</div>
+      </div>
+    </div>
+
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <div class="nav-item active" data-view="dashboard">
+        <span class="nav-icon">📊</span>
+        <span>Dashboard</span>
+      </div>
+
+      <div class="nav-section-label">Data</div>
+      <div class="nav-item" data-view="leads">
+        <span class="nav-icon">👥</span>
+        <span>Leads</span>
+      </div>
+      <div class="nav-item" data-view="invoices">
+        <span class="nav-icon">🧾</span>
+        <span>Invoices</span>
+      </div>
+
+      <div class="nav-section-label">Actions</div>
+      <div class="nav-item" data-view="create">
+        <span class="nav-icon">✏️</span>
+        <span>New Record</span>
+      </div>
+      <div class="nav-item" data-view="chat">
+        <span class="nav-icon">💬</span>
+        <span>AI Chat</span>
+      </div>
+    </div>
+
+    <div class="sidebar-footer" style="display:flex;align-items:center;justify-content:space-between">
+      <span>WF13 · <span style="color:var(--success)">● live</span></span>
+      <span onclick="logout()" style="cursor:pointer;color:var(--text-faint);font-size:13px" title="יציאה">⎋</span>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="topbar-title">Dashboard</div>
+      <div class="topbar-endpoint">POST /webhook/erp</div>
+      <button class="btn-refresh" id="btn-refresh" onclick="refreshCurrent()">
+        <span class="refresh-icon">↻</span>
+        <span>Refresh</span>
+      </button>
+    </div>
+
+    <div class="content">
+
+      <!-- ── DASHBOARD VIEW ── -->
+      <div class="view active" id="view-dashboard">
+        <div class="stat-grid" id="stat-grid">
+          <div class="stat-card" style="--card-accent:#38BDF8">
+            <span class="stat-icon">🧾</span>
+            <div class="stat-label">Total Invoices</div>
+            <div class="stat-value" id="stat-invoices">—</div>
+            <div class="stat-sub" id="stat-invoices-sub">Loading…</div>
+          </div>
+          <div class="stat-card" style="--card-accent:#34D399">
+            <span class="stat-icon">👥</span>
+            <div class="stat-label">Total Leads</div>
+            <div class="stat-value" id="stat-leads">—</div>
+            <div class="stat-sub" id="stat-leads-sub">Loading…</div>
+          </div>
+          <div class="stat-card" style="--card-accent:#FBBF24">
+            <span class="stat-icon">💰</span>
+            <div class="stat-label">Revenue This Month</div>
+            <div class="stat-value" id="stat-revenue">—</div>
+            <div class="stat-sub" id="stat-revenue-sub">Loading…</div>
+          </div>
+          <div class="stat-card" style="--card-accent:#A78BFA">
+            <span class="stat-icon">✅</span>
+            <div class="stat-label">Open Invoices</div>
+            <div class="stat-value" id="stat-paid">—</div>
+            <div class="stat-sub" id="stat-paid-sub">Loading…</div>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-header">
+            <h3>Recent Invoices</h3>
+          </div>
+          <div id="dashboard-table-container">
+            <div class="state-box">
+              <div class="state-icon">⏳</div>
+              <div>Loading dashboard…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── LEADS VIEW ── -->
+      <div class="view" id="view-leads">
+        <div class="table-card">
+          <div class="table-header">
+            <h3>Leads</h3>
+          </div>
+          <div id="leads-container">
+            <div class="state-box">
+              <div class="state-icon">⏳</div>
+              <div>Loading leads…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── INVOICES VIEW ── -->
+      <div class="view" id="view-invoices">
+        <div class="table-card">
+          <div class="table-header">
+            <h3>Invoices</h3>
+          </div>
+          <div id="invoices-container">
+            <div class="state-box">
+              <div class="state-icon">⏳</div>
+              <div>Loading invoices…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── CHAT VIEW ── -->
+      <div class="view" id="view-chat">
+        <div class="chat-container">
+          <div class="chat-header">
+            <div class="chat-ai-dot"></div>
+            <div style="font-weight:600">ERP AI Assistant</div>
+            <div style="margin-left:auto; font-size:11px; color:var(--text-faint); font-family:var(--font-mono)">GPT-4o mini</div>
+          </div>
+          <div class="chat-messages" id="chat-messages">
+            <div class="chat-msg ai">
+              <div class="msg-avatar">⚡</div>
+              <div>
+                <div class="msg-bubble">שלום! אני העוזר ה-AI של מערכת ה-ERP. אפשר לשאול אותי על חשבוניות, לידים, מוצרים ומשימות. במה אוכל לעזור?</div>
+                <div class="msg-time">System</div>
+              </div>
+            </div>
+          </div>
+          <div class="chat-input-row">
+            <textarea class="chat-input" id="chat-input" placeholder="שאל שאלה על הנתונים שלך…" rows="1"></textarea>
+            <button class="btn-send" id="btn-send" onclick="sendChat()">
+              <span>שלח</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── CREATE VIEW ── -->
+      <div class="view" id="view-create">
+        <div class="form-card">
+          <h3>צור רשומה חדשה</h3>
+
+          <div class="form-group">
+            <label class="form-label">טבלה</label>
+            <select class="form-select" id="create-table" onchange="renderCreateFields()">
+              <option value="Leads">Leads — לידים</option>
+              <option value="Invoices">Invoices — חשבוניות</option>
+              <option value="Products">Products — מוצרים</option>
+              <option value="Tasks">Tasks — משימות</option>
+            </select>
+          </div>
+
+          <div id="create-fields"></div>
+
+          <button class="btn-create" id="btn-create" onclick="submitCreate()">יצירת רשומה ✓</button>
+        </div>
+
+        <div class="table-card" style="max-width:640px" id="create-result" hidden>
+          <div class="table-header">
+            <h3>✅ רשומה נוצרה בהצלחה</h3>
+          </div>
+          <div id="create-result-body" style="padding:16px 20px; font-family:var(--font-mono); font-size:12px; color:var(--text-muted); white-space:pre-wrap; word-break:break-all;"></div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /main-app -->
+
+<div id="toast"></div>
+
+<script>
+// ── Auth ──
+// The password is never stored in this file: only its SHA-256 hash.
+// The typed password is also sent to WF13 as the X-ERP-Key header, so the
+// webhook can reject callers who don't know it (see README, "Securing WF13").
+const PW_SHA256 = 'e32ac31e84e954c4ef30f7a6799948cdf08f30e85de505e237155c9b27265aa5';
+let ERP_KEY = '';
+
+async function sha256(t) {
+  const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
+  return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
+}
+
+function unlock(key) {
+  ERP_KEY = key;
+  try { sessionStorage.setItem('erp_key', key); } catch(e){}
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('main-app').hidden = false;
+  loadDashboard();
+}
+
+async function checkPw() {
+  const input = document.getElementById('pw-input');
+  const val = input.value;
+  if (await sha256(val) === PW_SHA256) {
+    unlock(val);
+  } else {
+    document.getElementById('pw-err').style.opacity = 1;
+    input.value = '';
+    input.focus();
+    input.style.borderColor = 'var(--danger)';
+    setTimeout(() => { input.style.borderColor = ''; }, 1200);
+  }
+}
+
+// Restore session
+(async function() {
+  let saved = null;
+  try { saved = sessionStorage.getItem('erp_key'); } catch(e){}
+  if (saved && await sha256(saved) === PW_SHA256) {
+    setTimeout(() => unlock(saved), 50);
+  } else {
+    setTimeout(() => document.getElementById('pw-input').focus(), 100);
+  }
+})();
+
+const WEBHOOK = 'https://erplior51.app.n8n.cloud/webhook/erp';
+
+// ── API helper ──
+async function callERP(body) {
+  const res = await fetch(WEBHOOK, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-ERP-Key': ERP_KEY },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+// ── Toast ──
+let toastTimer;
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = (type === 'success' ? '✓ ' : '✕ ') + msg;
+  t.className = `show ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.className = ''; }, 3500);
+}
+
+// ── Navigation ──
+const views = {
+  dashboard: { title: 'Dashboard', load: loadDashboard },
+  leads:     { title: 'Leads', load: loadLeads },
+  invoices:  { title: 'Invoices', load: loadInvoices },
+  chat:      { title: 'AI Chat', load: () => {} },
+  create:    { title: 'New Record', load: () => renderCreateFields() }
+};
+
+let currentView = 'dashboard';
+let viewLoaded = {};
+
+document.querySelectorAll('.nav-item').forEach(el => {
+  el.addEventListener('click', () => {
+    const v = el.dataset.view;
+    switchView(v);
+  });
+});
+
+function switchView(v) {
+  currentView = v;
+  document.querySelectorAll('.nav-item').forEach(el =>
+    el.classList.toggle('active', el.dataset.view === v));
+  document.querySelectorAll('.view').forEach(el =>
+    el.classList.toggle('active', el.id === `view-${v}`));
+  document.getElementById('topbar-title').textContent = views[v].title;
+
+  if (!viewLoaded[v]) {
+    viewLoaded[v] = true;
+    views[v].load();
+  }
+}
+
+function refreshCurrent() {
+  viewLoaded[currentView] = false;
+  views[currentView].load();
+  const btn = document.getElementById('btn-refresh');
+  btn.classList.add('spinning');
+  setTimeout(() => btn.classList.remove('spinning'), 800);
+}
+
+// ── Format helpers ──
+function fmtCurrency(n) {
+  return '₪' + Number(n).toLocaleString('he-IL');
+}
+
+function statusBadge(status) {
+  if (!status) return '<span class="badge badge-blue"><span class="badge-dot"></span>—</span>';
+  const s = status.toLowerCase();
+  if (['paid','validated','active','new','פעיל'].some(x => s.includes(x)))
+    return `<span class="badge badge-green"><span class="badge-dot"></span>${status}</span>`;
+  if (['pending','review','open','חדש'].some(x => s.includes(x)))
+    return `<span class="badge badge-yellow"><span class="badge-dot"></span>${status}</span>`;
+  if (['cancelled','failed','overdue','rejected'].some(x => s.includes(x)))
+    return `<span class="badge badge-red"><span class="badge-dot"></span>${status}</span>`;
+  return `<span class="badge badge-blue"><span class="badge-dot"></span>${status}</span>`;
+}
+
+function errorState(msg) {
+  return `<div class="state-box error"><div class="state-icon">⚠️</div><div>${msg}</div></div>`;
+}
+function emptyState(msg) {
+  return `<div class="state-box"><div class="state-icon">🗂️</div><div>${msg}</div></div>`;
+}
+
+// ── DASHBOARD ──
+async function loadDashboard() {
+  try {
+    // WF13 'dashboard' returns { kpis }, 'invoices' returns { records }. Numbers are computed in n8n.
+    const [dash, inv] = await Promise.all([
+      callERP({ action: 'dashboard' }),
+      callERP({ action: 'invoices' }).catch(() => ({ records: [] }))
+    ]);
+    const k = dash.kpis || {};
+    const sum = o => Object.values(o || {}).reduce((a, b) => a + (Number(b) || 0), 0);
+    const chips = o => Object.entries(o || {}).map(([s, n]) => `${s}: ${n}`).join(' · ') || '—';
+
+    set('stat-invoices', k.invoiceCount ?? '—');
+    set('stat-invoices-sub', 'לא כולל חשבוניות בשגיאה');
+    set('stat-leads', k.leadsByStatus ? sum(k.leadsByStatus) : '—');
+    set('stat-leads-sub', chips(k.leadsByStatus));
+    set('stat-revenue', k.monthlyRevenue != null ? fmtCurrency(k.monthlyRevenue) : '—');
+    set('stat-revenue-sub', 'החודש, כולל מע"מ 18%');
+    set('stat-paid', k.openInvoices ?? '—');
+    set('stat-paid-sub', `משימות: ${k.taskCount ?? 0} (${chips(k.tasksByStatus)})`);
+
+    const rows = inv.records || [];
+    if (rows.length > 0) {
+      const recent = [...rows].sort((a, b) => new Date(b.Created || 0) - new Date(a.Created || 0)).slice(0, 8);
+      renderInvoiceTable('dashboard-table-container', recent);
+    } else {
+      document.getElementById('dashboard-table-container').innerHTML = emptyState('אין חשבוניות עדיין');
+    }
+  } catch(e) {
+    document.getElementById('dashboard-table-container').innerHTML = errorState(`שגיאה: ${e.message}`);
+    set('stat-invoices', 'ERR'); set('stat-leads', 'ERR');
+    set('stat-revenue', 'ERR'); set('stat-paid', 'ERR');
+  }
+}
+
+function set(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+// ── LEADS ──
+async function loadLeads() {
+  try {
+    const data = await callERP({ action: 'list', table: 'Leads' });
+    const rows = data.records || data.data || data.leads || (Array.isArray(data) ? data : []);
+
+    if (!rows.length) {
+      document.getElementById('leads-container').innerHTML = emptyState('אין לידים עדיין');
+      return;
+    }
+
+    let html = `<div class="table-wrapper"><table>
+      <thead><tr>
+        <th>#</th><th>שם</th><th>אימייל</th><th>טלפון</th><th>סטטוס</th><th>מקור</th>
+      </tr></thead><tbody>`;
+
+    rows.forEach((r, i) => {
+      const f = r.fields || r;
+      html += `<tr>
+        <td class="mono" style="color:var(--text-faint)">${i+1}</td>
+        <td><strong>${esc(f.Name || f.name || '—')}</strong></td>
+        <td style="color:var(--text-muted)">${esc(f.Email || f.email || '—')}</td>
+        <td class="mono">${esc(f.Phone || f.phone || '—')}</td>
+        <td>${statusBadge(f.Status || f.status)}</td>
+        <td style="color:var(--text-muted)">${esc(f.Source || f.source || '—')}</td>
+      </tr>`;
+    });
+    html += '</tbody></table></div>';
+    document.getElementById('leads-container').innerHTML = html;
+
+  } catch(e) {
+    document.getElementById('leads-container').innerHTML = errorState(`שגיאה: ${e.message}`);
+  }
+}
+
+// ── INVOICES ──
+async function loadInvoices() {
+  try {
+    const data = await callERP({ action: 'invoices' });
+    const rows = data.records || data.data || data.invoices || (Array.isArray(data) ? data : []);
+
+    if (!rows.length) {
+      document.getElementById('invoices-container').innerHTML = emptyState('אין חשבוניות');
+      return;
+    }
+
+    renderInvoiceTable('invoices-container', rows);
+
+  } catch(e) {
+    document.getElementById('invoices-container').innerHTML = errorState(`שגיאה: ${e.message}`);
+  }
+}
+
+function renderInvoiceTable(containerId, rows) {
+  let html = `<div class="table-wrapper"><table>
+    <thead><tr>
+      <th>מספר חשבונית</th><th>מזהה לקוח</th><th>סכום</th><th>מע"מ 18%</th><th>סה"כ</th><th>סטטוס</th>
+    </tr></thead><tbody>`;
+
+  rows.forEach(r => {
+    const f = r.fields || r;
+    const amount = Number(f.Amount || f.amount || 0);
+    // VAT and Total come from WF1 in n8n; the browser never calculates them.
+    const vat    = f.VatAmount;
+    const total  = f.Total;
+
+    html += `<tr>
+      <td class="mono" style="color:var(--accent)">${esc(f.InvoiceNumber || f.id || '—')}</td>
+      <td><strong>${esc(f.CustomerId || '—')}</strong></td>
+      <td class="amount">${fmtCurrency(amount)}</td>
+      <td class="amount" style="color:var(--text-muted)">${vat != null ? fmtCurrency(vat) : 'ממתין'}</td>
+      <td class="amount" style="color:var(--warning);font-weight:600">${total != null ? fmtCurrency(total) : 'ממתין'}</td>
+      <td>${statusBadge(f.Status || f.status)}</td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+  document.getElementById(containerId).innerHTML = html;
+}
+
+// ── CHAT ──
+document.getElementById('chat-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+});
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  const btn = document.getElementById('btn-send');
+  btn.disabled = true;
+  input.value = '';
+
+  appendMsg('user', msg);
+
+  // Typing indicator
+  const typingId = 'typing-' + Date.now();
+  appendMsg('ai', '<div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>', typingId);
+
+  try {
+    const data = await callERP({ action: 'chat', message: msg });
+    const reply = data.reply || data.response || data.message || data.text
+      || (typeof data === 'string' ? data : JSON.stringify(data, null, 2));
+
+    // Remove typing indicator
+    const el = document.getElementById(typingId);
+    if (el) el.remove();
+
+    appendMsg('ai', reply);
+
+  } catch(e) {
+    const el = document.getElementById(typingId);
+    if (el) el.remove();
+    appendMsg('ai', `⚠️ שגיאה: ${e.message}`);
+  }
+
+  btn.disabled = false;
+}
+
+function appendMsg(role, content, id) {
+  const container = document.getElementById('chat-messages');
+  const time = new Date().toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+
+  const div = document.createElement('div');
+  div.className = `chat-msg ${role}`;
+  if (id) div.id = id;
+  div.innerHTML = `
+    <div class="msg-avatar">${role === 'user' ? '👤' : '⚡'}</div>
+    <div>
+      <div class="msg-bubble">${role === 'user' ? esc(content) : content}</div>
+      ${id ? '' : `<div class="msg-time">${time}</div>`}
+    </div>`;
+
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+// ── CREATE FORM ──
+const TABLE_FIELDS = {
+  Leads: [
+    { key: 'Name',   label: 'שם מלא *',   type: 'text',   required: true },
+    { key: 'Email',  label: 'אימייל',      type: 'email' },
+    { key: 'Company', label: 'חברה',       type: 'text' },
+  ],
+  Invoices: [
+    { key: 'InvoiceNumber', label: 'מספר חשבונית *',   type: 'text',   required: true },
+    { key: 'CustomerId',    label: 'מזהה לקוח *',       type: 'text',   required: true },
+    { key: 'Amount',        label: 'סכום (ללא מע"מ) *', type: 'number', required: true },
+  ],
+  Products: [
+    { key: 'Name',        label: 'שם מוצר *', type: 'text',   required: true },
+    { key: 'Category',    label: 'קטגוריה',   type: 'text' },
+    { key: 'Price',       label: 'מחיר ₪',    type: 'number' },
+    { key: 'Description', label: 'תיאור',     type: 'textarea' },
+  ],
+  Tasks: [
+    { key: 'Name',        label: 'שם משימה *', type: 'text',     required: true },
+    { key: 'Status',      label: 'סטטוס',      type: 'select',   options: ['Open','In Progress','Done','Blocked'] },
+    { key: 'Description', label: 'תיאור',      type: 'textarea' },
+    { key: 'DueDate',     label: 'תאריך יעד',  type: 'date' },
+  ],
+};
+
+function renderCreateFields() {
+  const table = document.getElementById('create-table').value;
+  const fields = TABLE_FIELDS[table] || [];
+  let html = '';
+
+  // Group in rows of 2 when appropriate
+  let i = 0;
+  while (i < fields.length) {
+    const f = fields[i];
+    const next = fields[i+1];
+    const canPair = next && f.type !== 'textarea' && next.type !== 'textarea';
+
+    if (canPair) {
+      html += '<div class="form-row">';
+      html += fieldHTML(f) + fieldHTML(next);
+      html += '</div>';
+      i += 2;
+    } else {
+      html += fieldHTML(f);
+      i += 1;
+    }
+  }
+
+  // VAT notice for invoices
+  if (table === 'Invoices') {
+    html += `<div style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--warning);margin-bottom:16px">
+      💡 מע"מ 18% וסה"כ מחושבים אוטומטית ב-n8n (WF1), לא בדפדפן. סטטוס נקבע אוטומטית.
+    </div>`;
+  }
+
+  document.getElementById('create-fields').innerHTML = html;
+  document.getElementById('create-result').hidden = true;
+}
+
+function fieldHTML(f) {
+  const id = `field-${f.key}`;
+  const req = f.required ? ' required' : '';
+  let input = '';
+
+  if (f.type === 'select') {
+    input = `<select class="form-select" id="${id}"${req}>
+      <option value="">— בחר —</option>
+      ${f.options.map(o => `<option value="${o}">${o}</option>`).join('')}
+    </select>`;
+  } else if (f.type === 'textarea') {
+    input = `<textarea class="form-textarea" id="${id}" placeholder="${f.label}"${req}></textarea>`;
+  } else {
+    input = `<input class="form-input" type="${f.type}" id="${id}" placeholder="${f.label}"${req}>`;
+  }
+
+  return `<div class="form-group"><label class="form-label" for="${id}">${f.label}</label>${input}</div>`;
+}
+
+async function submitCreate() {
+  const table = document.getElementById('create-table').value;
+  const fields = TABLE_FIELDS[table] || [];
+  const payload = {};
+
+  for (const f of fields) {
+    const el = document.getElementById(`field-${f.key}`);
+    if (!el) continue;
+    const val = el.value.trim();
+    if (f.required && !val) {
+      showToast(`שדה חובה: ${f.label}`, 'error');
+      el.focus();
+      return;
+    }
+    if (val) {
+      payload[f.key] = f.type === 'number' ? Number(val) : val;
+    }
+  }
+
+  const btn = document.getElementById('btn-create');
+  btn.disabled = true;
+  btn.textContent = 'שולח…';
+
+  try {
+    const data = await callERP({ action: 'create', table, payload });
+    showToast('רשומה נוצרה בהצלחה!', 'success');
+
+    document.getElementById('create-result').hidden = false;
+    document.getElementById('create-result-body').textContent =
+      JSON.stringify(data, null, 2);
+
+    // Reset form
+    document.getElementById('create-fields').querySelectorAll('input,select,textarea').forEach(el => {
+      el.value = '';
+    });
+
+  } catch(e) {
+    showToast(`שגיאה: ${e.message}`, 'error');
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'יצירת רשומה ✓';
+}
+
+// ── Escape HTML ──
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Logout ──
+function logout() {
+  try { sessionStorage.removeItem('erp_key'); ERP_KEY = ''; } catch(e){}
+  document.getElementById('main-app').hidden = true;
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('pw-input').value = '';
+  setTimeout(() => document.getElementById('pw-input').focus(), 100);
+}
+
+// ── Boot ──
+renderCreateFields();
+// loadDashboard() is called after successful login
+</script>
+
+</body></html>

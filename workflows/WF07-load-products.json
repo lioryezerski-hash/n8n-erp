@@ -1,0 +1,206 @@
+{
+  "name": "WF7 – Load Products",
+  "nodes": [
+    {
+      "id": "a7b8c9d0-0007-0007-0007-000000000001",
+      "name": "Run to Load Products",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        300
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "a7b8c9d0-0007-0007-0007-000000000002",
+      "name": "Get Products",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        440,
+        300
+      ],
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app0bWNSJs9TYcFmM",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "Products",
+          "mode": "name"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "id": "a7b8c9d0-0007-0007-0007-000000000003",
+      "name": "Build Product Text",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        300
+      ],
+      "parameters": {
+        "jsCode": "// Convert each Airtable product row into a compact text representation for embedding.\n// Handles an empty Products table: returns [] so nothing is inserted (no error).\nconst results = [];\n\nfor (const item of $input.all()) {\n  const p = item.json;\n\n  const text =\n    `Name: ${p.Name ?? ''}\\n` +\n    `Category: ${p.Category ?? ''}\\n` +\n    `Price: ${p.Price ?? ''}\\n` +\n    `Description: ${p.Description ?? ''}\\n` +\n    `InStock: ${p.InStock ?? ''}`;\n\n  results.push({ json: { text, productName: p.Name ?? '' } });\n}\n\nreturn results;"
+      }
+    },
+    {
+      "id": "a7b8c9d0-0007-0007-0007-000000000004",
+      "name": "Insert Products Into Vector Store",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.1,
+      "position": [
+        900,
+        300
+      ],
+      "parameters": {
+        "mode": "insert",
+        "memoryKey": "erp_knowledge",
+        "clearStore": false
+      }
+    },
+    {
+      "id": "a7b8c9d0-0007-0007-0007-000000000005",
+      "name": "Embeddings OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        820,
+        520
+      ],
+      "parameters": {
+        "model": "text-embedding-3-small",
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "id": "a7b8c9d0-0007-0007-0007-000000000006",
+      "name": "Product Document Loader",
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        520
+      ],
+      "parameters": {
+        "dataType": "json",
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.text }}",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "source",
+                "value": "product"
+              }
+            ]
+          }
+        },
+        "textSplittingMode": "custom"
+      }
+    },
+    {
+      "id": "a7b8c9d0-0007-0007-0007-000000000007",
+      "name": "Text Splitter",
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        700
+      ],
+      "parameters": {
+        "chunkSize": 800,
+        "chunkOverlap": 100,
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Run to Load Products": {
+      "main": [
+        [
+          {
+            "node": "Get Products",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Products": {
+      "main": [
+        [
+          {
+            "node": "Build Product Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Product Text": {
+      "main": [
+        [
+          {
+            "node": "Insert Products Into Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Insert Products Into Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Product Document Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Insert Products Into Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Product Document Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false
+}

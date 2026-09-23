@@ -1,0 +1,1078 @@
+{
+  "name": "WF13 – Application Backend",
+  "nodes": [
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000001",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        500
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "erp",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000090",
+      "name": "Check ERP Key",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        220,
+        500
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "c-key",
+              "leftValue": "={{ $json.headers['x-erp-key'] }}",
+              "rightValue": "REPLACE_WITH_DASHBOARD_PASSWORD",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000091",
+      "name": "Respond Unauthorized",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        440,
+        720
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { ok: false, error: 'unauthorized' } }}",
+        "options": {
+          "responseCode": 401
+        }
+      }
+    },
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000002",
+      "name": "Route Action",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        440,
+        500
+      ],
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "dashboard",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "dashboard"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "list",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "list"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "create",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "create"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "chat",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "chat"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "invoices",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "invoices"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      }
+    },
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000010",
+      "name": "Get Invoices (Dashboard)",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        640,
+        120
+      ],
+      "alwaysOutputData": true,
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app0bWNSJs9TYcFmM",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "Invoices",
+          "mode": "name"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000011",
+      "name": "Keep One A",
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        820,
+        120
+      ],
+      "parameters": {
+        "maxItems": 1
+      }
+    },
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000012",
+      "name": "Get Leads (Dashboard)",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1000,
+        120
+      ],
+      "alwaysOutputData": true,
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app0bWNSJs9TYcFmM",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "Leads",
+          "mode": "name"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000013",
+      "name": "Keep One B",
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        1180,
+        120
+      ],
+      "parameters": {
+        "maxItems": 1
+      }
+    },
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000014",
+      "name": "Get Tasks (Dashboard)",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1360,
+        120
+      ],
+      "alwaysOutputData": true,
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app0bWNSJs9TYcFmM",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "Tasks",
+          "mode": "name"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000015",
+      "name": "Keep One C",
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        1540,
+        120
+      ],
+      "parameters": {
+        "maxItems": 1
+      }
+    },
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000016",
+      "name": "Build Dashboard",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1720,
+        120
+      ],
+      "parameters": {
+        "jsCode": "// KPIs from the four active tables. Filters out empty placeholder items (no id) so an empty DB is safe.\nconst invoices = $('Get Invoices (Dashboard)').all().map(i => i.json).filter(i => i.id && (i.Status || '') !== 'Error');\nconst leads = $('Get Leads (Dashboard)').all().map(i => i.json).filter(i => i.id);\nconst tasks = $('Get Tasks (Dashboard)').all().map(i => i.json).filter(i => i.id);\nconst num = v => Number(v) || 0;\n\nconst now = new Date();\nconst ym = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');\nconst monthlyRevenue = Math.round(invoices.filter(i => {\n  const d = new Date(i.Created);\n  return !isNaN(d.getTime()) && (d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')) === ym;\n}).reduce((s, i) => s + num(i.Total), 0) * 100) / 100;\n\nconst openInvoices = invoices.filter(i => (i.Status || '') !== 'Paid').length;\n\nconst leadsByStatus = {};\nfor (const l of leads) { const s = l.Status || 'Unknown'; leadsByStatus[s] = (leadsByStatus[s] || 0) + 1; }\n\nconst tasksByStatus = {};\nfor (const t of tasks) { const s = t.Status || 'Unknown'; tasksByStatus[s] = (tasksByStatus[s] || 0) + 1; }\n\nreturn [{ json: { ok: true, action: 'dashboard', currency: 'ILS', kpis: { monthlyRevenue, openInvoices, invoiceCount: invoices.length, leadsByStatus, taskCount: tasks.length, tasksByStatus } } }];"
+      }
+    },
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000017",
+      "name": "Respond Dashboard",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1900,
+        120
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000020",
+      "name": "List Table Allowed",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        640,
+        340
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "c-list",
+              "leftValue": "={{ ['Invoices','Leads','Products','Tasks'].includes($json.body.table) }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000021",
+      "name": "Get List Records",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        860,
+        300
+      ],
+      "alwaysOutputData": true,
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app0bWNSJs9TYcFmM",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "={{ $json.body.table }}",
+          "mode": "name"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000022",
+      "name": "Build List Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1060,
+        300
+      ],
+      "parameters": {
+        "jsCode": "return [{ json: { ok: true, action: 'list', table: $('Webhook').first().json.body.table, records: $input.all().map(i => i.json).filter(r => r.id) } }];"
+      }
+    },
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000023",
+      "name": "Respond List",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1260,
+        300
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000030",
+      "name": "Create Table Allowed",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        640,
+        560
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "c-create",
+              "leftValue": "={{ ['Invoices','Leads','Products','Tasks'].includes($json.body.table) && !!$json.body.payload }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000031",
+      "name": "Prepare Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        860,
+        520
+      ],
+      "parameters": {
+        "jsCode": "// Expose ONLY the payload fields so Airtable auto-maps them to columns.\nreturn [{ json: $json.body.payload }];"
+      }
+    },
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000032",
+      "name": "Create Record",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1060,
+        520
+      ],
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "app0bWNSJs9TYcFmM",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "={{ $('Webhook').item.json.body.table }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000033",
+      "name": "Build Create Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1260,
+        520
+      ],
+      "parameters": {
+        "jsCode": "return [{ json: { ok: true, action: 'create', record: $json } }];"
+      }
+    },
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000034",
+      "name": "Respond Create",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1460,
+        520
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000040",
+      "name": "Get Invoices (Chat)",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        640,
+        780
+      ],
+      "alwaysOutputData": true,
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app0bWNSJs9TYcFmM",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "Invoices",
+          "mode": "name"
+        },
+        "returnAll": false,
+        "limit": 100,
+        "options": {}
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000041",
+      "name": "Calculate Metrics (Chat)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        840,
+        780
+      ],
+      "parameters": {
+        "jsCode": "// Deterministic metrics BEFORE OpenAI (same rules as WF9). OpenAI only phrases the answer.\nconst invoices = $input.all().map(i => i.json).filter(i => i.id && (i.Status || '') !== 'Error');\nconst num = v => Number(v) || 0;\nconst invoiceCount = invoices.length;\nconst totalRevenue = Math.round(invoices.reduce((s, i) => s + num(i.Total), 0) * 100) / 100;\nconst totalVat = Math.round(invoices.reduce((s, i) => s + num(i.VatAmount), 0) * 100) / 100;\nconst paidAmount = Math.round(invoices.filter(i => (i.Status || '') === 'Paid').reduce((s, i) => s + num(i.Total), 0) * 100) / 100;\nconst unpaidAmount = Math.round((totalRevenue - paidAmount) * 100) / 100;\nreturn [{ json: { invoiceCount, totalRevenue, totalVat, paidAmount, unpaidAmount, currency: 'ILS' } }];"
+      }
+    },
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000042",
+      "name": "Generate Chat Answer",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        1040,
+        780
+      ],
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "אתה עוזר ניהולי של בעל עסק אלקטרוניקה. ענה בעברית בלבד, בקצרה וברור. הסתמך אך ורק על המספרים שסופקו לך בהודעת המשתמש. אל תמציא נתונים ואל תשנה מספרים. הצג סכומים כספיים עם הסימן ₪. אם המשתמש שאל על נתון שאינו מופיע בנתונים שסופקו, אמור בפירוש שאין לך אותו."
+            },
+            {
+              "role": "user",
+              "content": "=שאלת המשתמש: {{ $('Webhook').item.json.body.message }}\n\nנתונים עסקיים (מחושבים מראש בקוד, אמת ואל תשנה):\nמספר חשבוניות: {{ $json.invoiceCount }}\nסך הכנסות (כולל מע״מ): {{ $json.totalRevenue }} ₪\nסך מע״מ: {{ $json.totalVat }} ₪\nסכום ששולם: {{ $json.paidAmount }} ₪\nסכום שטרם שולם: {{ $json.unpaidAmount }} ₪"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "credentials": {
+        "openAiApi": {
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000043",
+      "name": "Build Chat Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1260,
+        780
+      ],
+      "parameters": {
+        "jsCode": "return [{ json: { reply: $json.message.content } }];"
+      }
+    },
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000044",
+      "name": "Respond Chat",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1460,
+        780
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000050",
+      "name": "Get Invoices (List)",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        640,
+        980
+      ],
+      "alwaysOutputData": true,
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app0bWNSJs9TYcFmM",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "Invoices",
+          "mode": "name"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000051",
+      "name": "Build Invoices Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        860,
+        980
+      ],
+      "parameters": {
+        "jsCode": "return [{ json: { ok: true, action: 'invoices', records: $input.all().map(i => i.json).filter(r => r.id) } }];"
+      }
+    },
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000052",
+      "name": "Respond Invoices",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1060,
+        980
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000060",
+      "name": "Respond Invalid",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1060,
+        660
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { ok: false, error: 'Invalid table or payload' } }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "d0e1f2a3-0013-0013-0013-000000000061",
+      "name": "Respond Unknown Action",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        640,
+        1160
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { ok: false, error: 'Unknown action' } }}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Check ERP Key",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Action": {
+      "main": [
+        [
+          {
+            "node": "Get Invoices (Dashboard)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "List Table Allowed",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Table Allowed",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Invoices (Chat)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Invoices (List)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Unknown Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Invoices (Dashboard)": {
+      "main": [
+        [
+          {
+            "node": "Keep One A",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep One A": {
+      "main": [
+        [
+          {
+            "node": "Get Leads (Dashboard)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Leads (Dashboard)": {
+      "main": [
+        [
+          {
+            "node": "Keep One B",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep One B": {
+      "main": [
+        [
+          {
+            "node": "Get Tasks (Dashboard)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Tasks (Dashboard)": {
+      "main": [
+        [
+          {
+            "node": "Keep One C",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep One C": {
+      "main": [
+        [
+          {
+            "node": "Build Dashboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Dashboard": {
+      "main": [
+        [
+          {
+            "node": "Respond Dashboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Table Allowed": {
+      "main": [
+        [
+          {
+            "node": "Get List Records",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get List Records": {
+      "main": [
+        [
+          {
+            "node": "Build List Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build List Response": {
+      "main": [
+        [
+          {
+            "node": "Respond List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Table Allowed": {
+      "main": [
+        [
+          {
+            "node": "Prepare Payload",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Payload": {
+      "main": [
+        [
+          {
+            "node": "Create Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Record": {
+      "main": [
+        [
+          {
+            "node": "Build Create Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Create Response": {
+      "main": [
+        [
+          {
+            "node": "Respond Create",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Invoices (Chat)": {
+      "main": [
+        [
+          {
+            "node": "Calculate Metrics (Chat)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Metrics (Chat)": {
+      "main": [
+        [
+          {
+            "node": "Generate Chat Answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Chat Answer": {
+      "main": [
+        [
+          {
+            "node": "Build Chat Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Chat Response": {
+      "main": [
+        [
+          {
+            "node": "Respond Chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Invoices (List)": {
+      "main": [
+        [
+          {
+            "node": "Build Invoices Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Invoices Response": {
+      "main": [
+        [
+          {
+            "node": "Respond Invoices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check ERP Key": {
+      "main": [
+        [
+          {
+            "node": "Route Action",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Unauthorized",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false
+}

@@ -1,0 +1,185 @@
+{
+  "name": "WF5 – Customer Service Agent",
+  "nodes": [
+    {
+      "id": "e5f6a7b8-0005-0005-0005-000000000001",
+      "name": "Customer Message",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        220,
+        300
+      ],
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "credentials": {
+        "telegramApi": {
+          "name": "Telegram Customer Service Bot"
+        }
+      }
+    },
+    {
+      "id": "e5f6a7b8-0005-0005-0005-000000000002",
+      "name": "Customer Service Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        520,
+        300
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "אתה נציג שירות לקוחות של חברת אלקטרוניקה ישראלית קטנה. ענה בעברית בלבד, בנימוס ובקצרה. השתמש אך ורק במידע שמוחזר מהכלי 'knowledge_base' (מדיניות העסק ומוצרים). אל תמציא מידע עסקי, מחירים, מלאי או מדיניות שאינם מופיעים במידע שאוחזר. אם המידע הרלוונטי אינו זמין, אמור בפירוש שאין לך את המידע הזה והצע לפנות לנציג אנושי. שמור על טון ידידותי ומקצועי."
+        }
+      }
+    },
+    {
+      "id": "e5f6a7b8-0005-0005-0005-000000000003",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        420,
+        520
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "id": "e5f6a7b8-0005-0005-0005-000000000004",
+      "name": "Knowledge Base",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.1,
+      "position": [
+        640,
+        520
+      ],
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "knowledge_base",
+        "toolDescription": "מאגר הידע של העסק: מדיניות (שעות פעילות, משלוחים, החזרות, החלפות, אחריות, תשלומים, מסמכי מס, סטטוסי הזמנה) ומידע על מוצרים. השתמש בכלי הזה כדי לענות על כל שאלה של לקוח.",
+        "memoryKey": "erp_knowledge",
+        "topK": 4
+      }
+    },
+    {
+      "id": "e5f6a7b8-0005-0005-0005-000000000005",
+      "name": "Embeddings OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        640,
+        720
+      ],
+      "parameters": {
+        "model": "text-embedding-3-small",
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "id": "e5f6a7b8-0005-0005-0005-000000000006",
+      "name": "Send Telegram Reply",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        900,
+        300
+      ],
+      "parameters": {
+        "operation": "sendMessage",
+        "chatId": "={{ $('Customer Message').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "credentials": {
+        "telegramApi": {
+          "name": "Telegram Customer Service Bot"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Customer Message": {
+      "main": [
+        [
+          {
+            "node": "Customer Service Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Customer Service Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Knowledge Base": {
+      "ai_tool": [
+        [
+          {
+            "node": "Customer Service Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Knowledge Base",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Customer Service Agent": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false
+}
